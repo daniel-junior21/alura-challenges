@@ -1,6 +1,6 @@
 package com.alura.challenge.aluraflix.entities;
 
-import com.alura.challenge.aluraflix.controller.VideoUpdateRequestDTO;
+import com.alura.challenge.aluraflix.dto.VideoUpdateRequestDTO;
 import com.alura.challenge.aluraflix.dto.VideoRequestDTO;
 import jakarta.persistence.*;
 import lombok.*;

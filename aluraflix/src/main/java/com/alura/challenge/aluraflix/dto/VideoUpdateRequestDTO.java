@@ -1,4 +1,4 @@
-package com.alura.challenge.aluraflix.controller;
+package com.alura.challenge.aluraflix.dto;
 
 import jakarta.validation.constraints.NotNull;
 

@@ -2,6 +2,7 @@ package com.alura.challenge.aluraflix.controller;
 
 import com.alura.challenge.aluraflix.dto.VideoRequestDTO;
 import com.alura.challenge.aluraflix.dto.VideoResponseDTO;
+import com.alura.challenge.aluraflix.dto.VideoUpdateRequestDTO;
 import com.alura.challenge.aluraflix.entities.Video;
 import com.alura.challenge.aluraflix.repositories.VideoRepository;
 import com.alura.challenge.aluraflix.util.exceptions.NotFoundException;
