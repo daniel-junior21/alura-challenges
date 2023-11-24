@@ -28,15 +28,15 @@ public class Video {
     }
 
     public void updateVideo(VideoUpdateRequestDTO videoUpdateRequest) {
-        if(videoUpdateRequest.title() != null) {
+        if(videoUpdateRequest.title() != null && !videoUpdateRequest.title().trim().isEmpty()) {
             this.title = videoUpdateRequest.title();
         }
 
-        if(videoUpdateRequest.description() != null) {
+        if(videoUpdateRequest.description() != null && !videoUpdateRequest.description().trim().isEmpty()) {
             this.description = videoUpdateRequest.description();
         }
 
-        if(videoUpdateRequest.url() != null) {
+        if(videoUpdateRequest.url() != null && !videoUpdateRequest.url().trim().isEmpty()) {
             this.url = videoUpdateRequest.url();
         }
     }
