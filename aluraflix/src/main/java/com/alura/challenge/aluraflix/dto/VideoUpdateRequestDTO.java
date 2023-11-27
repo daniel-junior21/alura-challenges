@@ -1,4 +1,4 @@
-package com.alura.challenge.aluraflix.controller;
+package com.alura.challenge.aluraflix.dto;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -7,5 +7,6 @@ public record VideoUpdateRequestDTO(
         Long id,
         String title,
         String description,
-        String url) {
+        String url,
+        Long category) {
 }

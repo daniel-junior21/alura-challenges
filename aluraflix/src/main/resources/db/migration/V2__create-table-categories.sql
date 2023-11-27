@@ -1,0 +1,9 @@
+CREATE TABLE categories(
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(50) NOT NULL,
+    color VARCHAR(20) NOT NULL,
+
+    PRIMARY KEY(id)
+);
+
+INSERT INTO categories VALUES (1, "FREE", "GREEN");

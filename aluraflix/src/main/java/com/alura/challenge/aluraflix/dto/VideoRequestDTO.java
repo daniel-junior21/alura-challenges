@@ -8,5 +8,6 @@ public record VideoRequestDTO(
         @NotBlank(message = "Description field must not be empty")
         String description,
         @NotBlank(message = "Url field must not be empty")
-        String url) {
+        String url,
+        Long category) {
 }
