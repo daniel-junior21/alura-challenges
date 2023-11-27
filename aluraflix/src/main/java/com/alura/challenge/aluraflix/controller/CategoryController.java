@@ -1,10 +1,10 @@
 package com.alura.challenge.aluraflix.controller;
 
-import com.alura.challenge.aluraflix.dto.CategoryRequestDTO;
-import com.alura.challenge.aluraflix.dto.CategoryResponseDTO;
-import com.alura.challenge.aluraflix.dto.CategoryUpdateRequestDTO;
+import com.alura.challenge.aluraflix.config.ConfigProperties;
+import com.alura.challenge.aluraflix.dto.*;
 import com.alura.challenge.aluraflix.entities.Category;
 import com.alura.challenge.aluraflix.repositories.CategoryRepository;
+import com.alura.challenge.aluraflix.repositories.VideoRepository;
 import com.alura.challenge.aluraflix.util.exceptions.NotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +23,12 @@ public class CategoryController {
     @Autowired
     CategoryRepository categoryRepository;
 
+    @Autowired
+    VideoRepository videoRepository;
+
+    @Autowired
+    ConfigProperties props;
+
     @PostMapping
     @Transactional
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody @Valid CategoryRequestDTO categoryRequest, UriComponentsBuilder uriComponentsBuilder) {
@@ -35,18 +41,18 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponseDTO>> getCategories() {
+    public ResponseEntity<CategoryListResponseDTO> getCategories() {
         List<CategoryResponseDTO> categories = categoryRepository.findAll().stream()
                 .map(CategoryResponseDTO::new).toList();
 
-        return ResponseEntity.ok(categories);
+        return ResponseEntity.ok(new CategoryListResponseDTO(categories));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable("id") Long id) {
         Optional<Category> categoryOptional = categoryRepository.findById(id);
         if(categoryOptional.isEmpty()) {
-            throw new NotFoundException("Category Not Found");
+            throw new NotFoundException(props.getMessageCategoryNotFound());
         }
 
         Category category = categoryOptional.get();
@@ -54,12 +60,25 @@ public class CategoryController {
         return ResponseEntity.ok(new CategoryResponseDTO(category));
     }
 
+    @GetMapping("/{id}/videos")
+    public ResponseEntity<VideoListResponseDTO> getVideosByCategory(@PathVariable("id") Long id) {
+        Optional<Category> categoryOptional = categoryRepository.findById(id);
+        if(categoryOptional.isEmpty()) {
+            throw new NotFoundException(props.getMessageCategoryNotFound());
+        }
+
+        List<VideoResponseDTO> videos = videoRepository.findAllVideosByCategory(categoryOptional.get()).stream()
+                .map(VideoResponseDTO::new).toList();
+
+        return ResponseEntity.ok(new VideoListResponseDTO(videos));
+    }
+
     @PutMapping
     @Transactional
     public ResponseEntity<CategoryResponseDTO> updateCategory(@RequestBody @Valid CategoryUpdateRequestDTO categoryUpdateRequest) {
         Optional<Category> categoryOptional = categoryRepository.findById(categoryUpdateRequest.id());
         if(categoryOptional.isEmpty()) {
-            throw new NotFoundException("Category Not Found");
+            throw new NotFoundException(props.getMessageCategoryNotFound());
         }
 
         Category category = categoryOptional.get();
@@ -73,16 +92,13 @@ public class CategoryController {
     public ResponseEntity<String> deleteCategory(@PathVariable("id") Long id) {
         Optional<Category> categoryOptional = categoryRepository.findById(id);
         if(categoryOptional.isEmpty()) {
-            throw new NotFoundException("Category Not Found");
+            throw new NotFoundException(props.getMessageCategoryNotFound());
         }
 
         Category category = categoryOptional.get();
-        try {
-            categoryRepository.delete(category);
-        } catch(Exception e) {
-            throw new InternalError("An error occurred trying to delete the category!");
-        }
 
-        return ResponseEntity.ok("Category Deleted Successfully!");
+        categoryRepository.delete(category);
+
+        return ResponseEntity.ok(props.getMessageCategoryDeleted());
     }
 }

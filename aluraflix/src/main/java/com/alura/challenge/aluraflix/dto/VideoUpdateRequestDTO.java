@@ -7,5 +7,6 @@ public record VideoUpdateRequestDTO(
         Long id,
         String title,
         String description,
-        String url) {
+        String url,
+        Long category) {
 }
