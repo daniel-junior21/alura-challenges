@@ -1,6 +1,7 @@
 package com.alura.challenge.aluraflix.util;
 
 import com.alura.challenge.aluraflix.util.exceptions.NotFoundException;
+import com.alura.challenge.aluraflix.util.exceptions.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -34,5 +35,14 @@ public class ExceptionHandler {
                 .toList();
 
         return ResponseEntity.status(status).body(errors);
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<StandardError> unauthorizedException(UnauthorizedException exception) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+
+        StandardError error = new StandardError(exception.getMessage());
+
+        return ResponseEntity.status(status).body(error);
     }
 }
