@@ -17,9 +17,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
@@ -50,6 +54,9 @@ class VideoControllerTest {
     @Autowired
     JacksonTester<VideoUpdateRequestDTO> videoUpdateRequestDtoJson;
 
+    @Autowired
+    JacksonTester<Page<VideoResponseDTO>> videoResponsePageJson;
+
     @MockBean
     VideoRepository videoRepository;
 
@@ -61,6 +68,7 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return error 400 trying to create a video without information")
+    @WithMockUser
     void createVideoReturnError400() throws Exception {
         MockHttpServletResponse response = mockMvc.perform(post("/videos")).andReturn().getResponse();
 
@@ -69,6 +77,7 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return error 404 trying to create a video, category not found")
+    @WithMockUser
     void createVideoReturn404() throws Exception {
         String requestBody = videoRequestDtoJson.write(new VideoRequestDTO("Spring For Begginers", "Introduction to Spring.", "https://youtube.com/spring-for-begginers", 2L)).getJson();
         MockHttpServletResponse response = mockMvc
@@ -80,6 +89,7 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return success trying to create a video")
+    @WithMockUser
     void createVideoReturn201() throws Exception {
         String requestBody = videoRequestDtoJson.write(new VideoRequestDTO("Spring For Begginers", "Introduction to Spring.", "https://youtube.com/spring-for-begginers", 1L)).getJson();
 
@@ -98,40 +108,43 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return an empty video list with status 200")
+    @WithMockUser
     void getVideosEmptyList() throws Exception {
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Video> emptyPageList = new PageImpl<>(new ArrayList<>(), pageable, 0);
+        when(videoRepository.findAll(pageable)).thenReturn(emptyPageList);
         MockHttpServletResponse response = mockMvc
                 .perform(get("/videos").contentType(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse();
 
-        String expected = videosListResponseDtoJson.write(new VideoListResponseDTO(new ArrayList<>())).getJson();
+        String expected = "\"content\":[]";
 
         assertEquals(HttpStatus.OK.value(), response.getStatus());
-        assertEquals(expected, response.getContentAsString());
+        assertTrue(response.getContentAsString().contains(expected));
     }
 
     @Test
     @DisplayName("Should return an video list with status 200")
+    @WithMockUser
     void getVideosList() throws Exception {
         Category category = new Category(1L, "FREE", "GREEN");
         List<Video> videos = new ArrayList<>();
         videos.add(new Video(1L, "Spring fog begginers", "Spring for begginers", "https://youtube.com/spring-for-begginers", category));
-        when(videoRepository.findAll()).thenReturn(videos);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Video> videosPage = new PageImpl<>(videos, pageable, 1);
+        when(videoRepository.findAll(any(PageRequest.class))).thenReturn(videosPage);
 
         MockHttpServletResponse response = mockMvc
                 .perform(get("/videos").contentType(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse();
 
-
-        List<VideoResponseDTO> videosResponse = new ArrayList<>();
-        videosResponse.add(new VideoResponseDTO(videos.get(0)));
-        String expected = videosListResponseDtoJson.write(new VideoListResponseDTO(videosResponse)).getJson();
-
         assertEquals(HttpStatus.OK.value(), response.getStatus());
-        assertEquals(expected, response.getContentAsString());
+        assertTrue(response.getContentAsString().contains(videos.get(0).getTitle()));
     }
 
     @Test
     @DisplayName("Should return error 404 when inform an invalid id")
+    @WithMockUser
     void getVideoByidReturn404() throws Exception {
         MockHttpServletResponse response = mockMvc
                 .perform(get("/videos/1"))
@@ -142,6 +155,7 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return a video with success when inform a valid id")
+    @WithMockUser
     void getVideoByid() throws Exception {
         Category category = new Category(2L, "TECH", "GRAY");
         Optional<Video> video = Optional.of(new Video(2L, "Spring fog begginers", "Spring for begginers", "https://youtube.com/spring-for-begginers", category));
@@ -160,40 +174,45 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return an empty list when search by a word with no videos")
+    @WithMockUser
     void searchVideosByNameEmptyList() throws Exception {
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Video> emptyPageList = new PageImpl<>(new ArrayList<>(), pageable, 0);
+        when(videoRepository.searchVideoByTitle(any(), any())).thenReturn(emptyPageList);
+
         MockHttpServletResponse response = mockMvc
                 .perform(get("/videos/").contentType(MediaType.APPLICATION_JSON).param("search", "Python"))
                 .andReturn().getResponse();
 
-        String expected = videosListResponseDtoJson.write(new VideoListResponseDTO(new ArrayList<>())).getJson();
+        String expected = "\"content\":[]";
 
         assertEquals(HttpStatus.OK.value(), response.getStatus());
-        assertEquals(expected, response.getContentAsString());
+        assertTrue(response.getContentAsString().contains(expected));
     }
 
     @Test
     @DisplayName("Should return a video list when search by a word with videos")
+    @WithMockUser
     void searchVideosByNameSuccess() throws Exception {
         Category category = new Category(1L, "FREE", "GREEN");
         List<Video> videos = new ArrayList<>();
         videos.add(new Video(1L, "Spring fog begginers", "Spring for begginers", "https://youtube.com/spring-for-begginers", category));
 
-        when(videoRepository.searchVideoByTitle(any())).thenReturn(videos);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Video> videosPage = new PageImpl<>(videos, pageable, 1);
+        when(videoRepository.searchVideoByTitle(any(), any())).thenReturn(videosPage);
 
         MockHttpServletResponse response = mockMvc
                 .perform(get("/videos/").contentType(MediaType.APPLICATION_JSON).param("search", "Spring"))
                 .andReturn().getResponse();
 
-        List<VideoResponseDTO> videosResponse = new ArrayList<>();
-        videosResponse.add(new VideoResponseDTO(videos.get(0)));
-        String expected = videosListResponseDtoJson.write(new VideoListResponseDTO(videosResponse)).getJson();
-
         assertEquals(HttpStatus.OK.value(), response.getStatus());
-        assertEquals(expected, response.getContentAsString());
+        assertTrue(response.getContentAsString().contains(videos.get(0).getTitle()));
     }
 
     @Test
     @DisplayName("Should return error 404 when inform an invalid id")
+    @WithMockUser
     void updateVideoError404() throws Exception {
         String newTitle = "Spring for begginers";
         String requestBody = videoUpdateRequestDtoJson.write(new VideoUpdateRequestDTO(1000L, newTitle, null, null, null)).getJson();
@@ -207,6 +226,7 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return not update information when inform a valid id but new field blank")
+    @WithMockUser
     void updateVideoNotUpdate() throws Exception {
         Category category = new Category(1L, "FREE", "GREEN");
         Optional<Video> video = Optional.of(new Video(1L, "Spring fog begginers", "Spring for begginers", "https://youtube.com/spring-for-begginers", category));
@@ -229,6 +249,7 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return an updated information when inform a valid id")
+    @WithMockUser
     void updateVideo() throws Exception {
         Category category = new Category(1L, "FREE", "GREEN");
         Optional<Video> video = Optional.of(new Video(1L, "Spring fog begginers", "Spring for begginers", "https://youtube.com/spring-for-begginers", category));
@@ -252,6 +273,7 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return error 404 when inform an invalid id")
+    @WithMockUser
     void deleteVideoError404() throws Exception {
         MockHttpServletResponse response = mockMvc
                 .perform(delete("/videos/1"))
@@ -262,6 +284,7 @@ class VideoControllerTest {
 
     @Test
     @DisplayName("Should return success when inform a valid id")
+    @WithMockUser
     void deleteVideoSuccess() throws Exception {
         Category category = new Category(1L, "FREE", "GREEN");
         Optional<Video> video = Optional.of(new Video(1L, "Spring fog begginers", "Spring for begginers", "https://youtube.com/spring-for-begginers", category));

@@ -8,10 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,8 +31,9 @@ class VideoRepositoryTest {
     void findAllVideosByCategory() {
         Category category = createCategory("FREE", "GREEN");
         Video expected = createVideo("Spring for Begginers", "Spring for Begginers", "https://youtube.com/spring-for-begginers", category);
-        List<Video> videos = videoRepository.findAllVideosByCategory(category);
-        Video actual = videos.get(0);
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<Video> videos = videoRepository.findAllVideosByCategory(category, pageRequest);
+        Video actual = videos.getContent().get(0);
 
         assertNotNull(videos);
         assertEquals(expected, actual);
@@ -43,9 +45,10 @@ class VideoRepositoryTest {
         Category category = createCategory("FREE", "GREEN");
         Category categorySearch = createCategory("Tech", "gray");
         Video video = createVideo("Spring for Begginers", "Spring for Begginers", "https://youtube.com/spring-for-begginers", category);
-        List<Video> videos = videoRepository.findAllVideosByCategory(categorySearch);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Video> videos = videoRepository.findAllVideosByCategory(categorySearch, pageable);
 
-        assertEquals(new ArrayList<>(), videos);
+        assertEquals(new ArrayList<>(), videos.getContent());
     }
 
     @Test
@@ -53,10 +56,10 @@ class VideoRepositoryTest {
     void searchVideoByTitle() {
         Category category = createCategory("FREE", "GREEN");
         Video expected = createVideo("Spring for Begginers", "Spring for Begginers", "https://youtube.com/spring-for-begginers", category);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Video> result = videoRepository.searchVideoByTitle("Spring", pageable);
 
-        List<Video> result = videoRepository.searchVideoByTitle("Spring");
-
-        assertNotNull(result);
+        assertNotNull(result.getContent());
     }
 
     @Test
@@ -64,10 +67,10 @@ class VideoRepositoryTest {
     void searchVideoByTitleReturnEmptyList() {
         Category category = createCategory("FREE", "GREEN");
         Video expected = createVideo("Spring for Begginers", "Spring for Begginers", "https://youtube.com/spring-for-begginers", category);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Video> result = videoRepository.searchVideoByTitle("Python", pageable);
 
-        List<Video> result = videoRepository.searchVideoByTitle("Python");
-
-        assertEquals(new ArrayList<>(), result);
+        assertEquals(new ArrayList<>(), result.getContent());
     }
 
     private Category createCategory(String title, String color) {
