@@ -300,4 +300,32 @@ class VideoControllerTest {
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertEquals(expected, response.getContentAsString());
     }
+
+    @Test
+    @DisplayName("Should return a list with 10 free videos")
+    void freeVideosSuccess() throws Exception {
+        List<Video> videos = getMockVideos();
+        when(videoRepository.getFreeVideos()).thenReturn(videos);
+
+        MockHttpServletResponse response = mockMvc
+                .perform(get("/videos/free"))
+                .andReturn().getResponse();
+
+        String expected = "";
+
+        assertEquals(HttpStatus.OK.value(), response.getStatus());
+        assertEquals(10, videos.size());
+    }
+
+    private List<Video> getMockVideos() {
+        List<Video> videos = new ArrayList<>();
+
+        for(Integer i = 0; i < 10; i++){
+            Category category = new Category(1L, "FREE", "GREEN");
+            Video video = new Video(i.longValue(), String.format("%d-Free", i), "Free", "https://www.youtube.com.br/free",category);
+            videos.add(video);
+        }
+
+        return videos;
+    }
 }

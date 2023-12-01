@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -71,6 +72,23 @@ class VideoRepositoryTest {
         Page<Video> result = videoRepository.searchVideoByTitle("Python", pageable);
 
         assertEquals(new ArrayList<>(), result.getContent());
+    }
+
+    @Test
+    @DisplayName("Should return a list with 10 free videos")
+    void getFreeVideoList() {
+        createVideoList();
+        List<Video> videos = videoRepository.getFreeVideos();
+
+        assertEquals(10, videos.size());
+    }
+
+    private void createVideoList() {
+        Category category = createCategory("FREE", "GREEN");
+        for(int i = 0; i <= 11; i++) {
+            Video video = new Video(null, String.format("%d-Free Video", i), "Free", "https://www.youtube.com/free", category);
+            em.persist(video);
+        }
     }
 
     private Category createCategory(String title, String color) {

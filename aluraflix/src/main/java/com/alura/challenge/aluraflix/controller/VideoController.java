@@ -81,6 +81,13 @@ public class VideoController {
         return ResponseEntity.ok(videos);
     }
 
+    @GetMapping("/free")
+    public ResponseEntity<VideoListResponseDTO> getFreeVideos() {
+        List<VideoResponseDTO> videos = videoRepository.getFreeVideos().stream().map(VideoResponseDTO::new).toList();
+
+        return ResponseEntity.ok(new VideoListResponseDTO(videos));
+    }
+
     @PutMapping
     @Transactional
     public ResponseEntity<VideoResponseDTO> updateVideo(@RequestBody @Valid VideoUpdateRequestDTO videoUpdateRequest) {

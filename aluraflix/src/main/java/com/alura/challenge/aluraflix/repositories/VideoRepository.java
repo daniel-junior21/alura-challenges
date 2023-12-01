@@ -15,4 +15,7 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
 
     @Query("select v from Video v where v.title like concat('%', :title, '%')")
     Page<Video> searchVideoByTitle(String title, Pageable pageable);
+
+    @Query(value = "select v from Video v order by rand() limit 10")
+    List<Video> getFreeVideos();
 }
