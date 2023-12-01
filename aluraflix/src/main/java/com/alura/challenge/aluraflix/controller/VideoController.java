@@ -12,6 +12,9 @@ import com.alura.challenge.aluraflix.repositories.VideoRepository;
 import com.alura.challenge.aluraflix.util.exceptions.NotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -55,10 +58,10 @@ public class VideoController {
     }
 
     @GetMapping
-    public ResponseEntity<VideoListResponseDTO> getVideos() {
-        List<VideoResponseDTO> videos = videoRepository.findAll().stream().map(VideoResponseDTO::new).toList();
+    public ResponseEntity<Page<VideoResponseDTO>> getVideos(@PageableDefault(size = 10) Pageable pagination) {
+        Page<VideoResponseDTO> videos = videoRepository.findAll(pagination).map(VideoResponseDTO::new);
 
-        return ResponseEntity.ok(new VideoListResponseDTO(videos));
+        return ResponseEntity.ok(videos);
     }
 
     @GetMapping("/{id}")
@@ -72,9 +75,15 @@ public class VideoController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<VideoListResponseDTO> searchVideosByName(@RequestParam(name = "search") String title) {
-        List<VideoResponseDTO> videos = videoRepository.searchVideoByTitle(title).stream()
-                .map(VideoResponseDTO::new).toList();
+    public ResponseEntity<Page<VideoResponseDTO>> searchVideosByName(@RequestParam(name = "search") String title, @PageableDefault(size = 10) Pageable pageable) {
+        Page<VideoResponseDTO> videos = videoRepository.searchVideoByTitle(title, pageable).map(VideoResponseDTO::new);
+
+        return ResponseEntity.ok(videos);
+    }
+
+    @GetMapping("/free")
+    public ResponseEntity<VideoListResponseDTO> getFreeVideos() {
+        List<VideoResponseDTO> videos = videoRepository.getFreeVideos().stream().map(VideoResponseDTO::new).toList();
 
         return ResponseEntity.ok(new VideoListResponseDTO(videos));
     }

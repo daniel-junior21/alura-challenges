@@ -8,6 +8,9 @@ import com.alura.challenge.aluraflix.repositories.VideoRepository;
 import com.alura.challenge.aluraflix.util.exceptions.NotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -41,11 +44,10 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<CategoryListResponseDTO> getCategories() {
-        List<CategoryResponseDTO> categories = categoryRepository.findAll().stream()
-                .map(CategoryResponseDTO::new).toList();
+    public ResponseEntity<Page<CategoryResponseDTO>> getCategories(@PageableDefault(size = 10)Pageable pageable) {
+        Page<CategoryResponseDTO> categories = categoryRepository.findAll(pageable).map(CategoryResponseDTO::new);
 
-        return ResponseEntity.ok(new CategoryListResponseDTO(categories));
+        return ResponseEntity.ok(categories);
     }
 
     @GetMapping("/{id}")
@@ -61,16 +63,15 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}/videos")
-    public ResponseEntity<VideoListResponseDTO> getVideosByCategory(@PathVariable("id") Long id) {
+    public ResponseEntity<Page<VideoResponseDTO>> getVideosByCategory(@PathVariable("id") Long id, @PageableDefault(size = 10) Pageable pageable) {
         Optional<Category> categoryOptional = categoryRepository.findById(id);
         if(categoryOptional.isEmpty()) {
             throw new NotFoundException(props.getMessageCategoryNotFound());
         }
 
-        List<VideoResponseDTO> videos = videoRepository.findAllVideosByCategory(categoryOptional.get()).stream()
-                .map(VideoResponseDTO::new).toList();
+        Page<VideoResponseDTO> videos = videoRepository.findAllVideosByCategory(categoryOptional.get(), pageable).map(VideoResponseDTO::new);
 
-        return ResponseEntity.ok(new VideoListResponseDTO(videos));
+        return ResponseEntity.ok(videos);
     }
 
     @PutMapping

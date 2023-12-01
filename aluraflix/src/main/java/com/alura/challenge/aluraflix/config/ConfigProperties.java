@@ -2,6 +2,7 @@ package com.alura.challenge.aluraflix.config;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -14,4 +15,8 @@ public class ConfigProperties {
     private final String messageCategoryNotFound = "Category Not Found";
     private final String messageCategoryError = "An error occurred trying to delete the category!";
     private final String messageCategoryDeleted = "Category Deleted Successfully!";
+    private final String messageUnauthorized = "Invalid credentials or token expired!";
+
+    @Value("${api.security.token.secret}")
+    private String secret;
 }
