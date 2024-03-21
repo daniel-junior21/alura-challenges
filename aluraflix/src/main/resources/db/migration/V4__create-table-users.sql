@@ -5,3 +5,5 @@ CREATE TABLE users(
 
     PRIMARY KEY(id)
 );
+
+INSERT INTO users VALUES (1, "admin", "$2a$12$dkhAHosZZ9.ysUeoXRjlTuepSccvsGl2gTv9aBNP2Io8fo3EvR.PW");
